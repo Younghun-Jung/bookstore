@@ -72,3 +72,33 @@ app.get('/api/books/:book_id', function(req, res){
         res.json(book);
     })
 });
+
+// GET BOOKS BY AUTHOR => author값이 매칭되는 데이터 찾아 출력.
+app.get('/api/books/author/:author', function(req, res){
+    // find() 메소드에서 첫번째 인자에는 query, 두번째 인자에는 projection 전달(생략 시 모든 filed 출력)
+    // author값으로 찾아서 title과 published_date만 출력
+    Book.find({author: req.params.author}, {_id: 0, title: 1, published_date: 1},  function(err, books){
+        if(err) return res.status(500).json({error: err});
+        if(books.length === 0) return res.status(404).json({error: 'book not found'});
+        res.json(books);
+    })
+});
+
+// UPDATE THE BOOK
+app.put('/api/books/:book_id', function(req, res){
+    Book.findById(req.params.book_id, function(err, book){
+        if(err) return res.status(500).json({ error: 'database failure' });
+        if(!book) return res.status(404).json({ error: 'book not found' });
+
+        if(req.body.title) book.title = req.body.title;
+        if(req.body.author) book.author = req.body.author;
+        if(req.body.published_date) book.published_date = req.body.published_date;
+
+        book.save(function(err){
+            if(err) res.status(500).json({error: 'failed to update'});
+            res.json({message: 'book updated'});
+        });
+
+    });
+
+});
